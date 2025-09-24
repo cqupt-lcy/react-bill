@@ -1,25 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import classNames from 'classnames';
 import './index.scss'
 import { billTypeToName } from '@/constants';
+import Icon from '@/components/Icon';
 const DayBill = ({ date, data }) => {
-    const [moneyData, setMoneyData] = useState({ pay: 0, income: 0, total: 0 });
-    const [visible, setVisible] = useState(true);
-    useEffect(() => {
-        let pay = 0, income = 0, total = 0;
-        data.forEach(item => {
-            if (item.type === 'pay') pay += item.money;
-            else if (item.type === 'income') income += item.money;
-        });
-        total = income - pay;
-        setMoneyData({ pay, income, total });
+    const [visible, setVisible] = useState(false);
+    const moneyData = useMemo(() => {
+        const pay = data.filter(item => item.type === 'pay').reduce((acc, cur) => acc + cur.money, 0);
+        const income = data.filter(item => item.type === 'income').reduce((acc, cur) => acc + cur.money, 0);
+        const total = income - pay;
+        return { pay, income, total };
     }, [data])
     return (
         <div className="dayBill">
             <div className="header">
                 <div className="dateIcon">
                     <span className="date">{date}</span>
-                    <span className={classNames('arrow', {'expand': visible})} onClick={() => setVisible(!visible)}></span>
+                    <span className={classNames('arrow', { 'expand': visible })} onClick={() => setVisible(!visible)}></span>
                 </div>
                 <div className="oneLineOverview">
                     <div className="pay">
@@ -41,6 +38,7 @@ const DayBill = ({ date, data }) => {
                 {data.map(item => {
                     return (
                         <div className="bill" key={item.id}>
+                            <Icon type={item.useFor}></Icon>
                             <div className="detail">
                                 <div className="billType">{billTypeToName[item.useFor]}</div>
                             </div>

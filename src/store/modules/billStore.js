@@ -10,10 +10,13 @@ const billStore = createSlice({
         setBillList(state, action) {
             state.billList = action.payload;
         },
+        addBill(state, action) {
+            state.billList.push(action.payload);
+        }
     }
 })
 
-const { setBillList } = billStore.actions;
+const { setBillList, addBill } = billStore.actions;
 
 // 这里使用 thunk action creator 的原因:
 // 1. Redux 默认只支持同步 action，不能直接处理异步操作
@@ -25,6 +28,12 @@ const getBillList = () => {
         dispatch(setBillList(res.data));
     }
 }
+const addBillList = (data) => {
+    return async (dispatch) => {
+        const res = await axios.post('http://localhost:8888/ka', data);
+        dispatch(addBill(res.data))
+    }
+}
 
-export { getBillList };
+export { getBillList, addBillList };
 export default billStore.reducer;
