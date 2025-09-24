@@ -1,18 +1,36 @@
 import { DatePicker, NavBar } from "antd-mobile";
 import './index.scss'
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import classNames from 'classnames'
 import dayjs from "dayjs";
+import { useSelector } from "react-redux";
+import _ from 'lodash'
 function Month() {
   const [visible, setVisible] = useState(false);
   const [time, setTime] = useState(() => {
     return dayjs(new Date()).format("YYYY-MM");
   });
+  const [moneyCount, setMoneyCount] = useState({pay:0, income:0, total:0});
   const handleConfirm = (value) => {
     const date = dayjs(value).format("YYYY-MM")
     setTime(date)
     setVisible(false);
   }
+  const billList = useSelector(state => state.bill.billList);
+  const monthGroup = useMemo(() => {
+    return _.groupBy(billList, item => dayjs(item.date).format("YYYY-MM"));
+  }, [billList]);
+  useEffect(() => {
+    if(!(time in monthGroup)) return 
+    const arr = monthGroup[time];
+    let pay=0, income=0, total=0;
+    arr.forEach(item => {
+      if(item.type === 'pay') pay+=Math.abs(item.money);
+      else if(item.type === 'income') income+= item.money;
+      total+=item.money;
+    });
+    setMoneyCount({pay, income, total});
+  }, [time, monthGroup])
   return (
     <div className="monthlyBill">
       {/* 头部导航栏区域 */}
@@ -33,15 +51,15 @@ function Month() {
           {/* 统计区域 */}
           <div className="twoLineOverview">
             <div className="item">
-              <span className="money">100</span>
+              <span className="money">{moneyCount.pay}</span>
               <span className="type">支出</span>
             </div>
             <div className="item">
-              <span className="money">200</span>
+              <span className="money">{moneyCount.income}</span>
               <span className="type">收入</span>
             </div>
             <div className="item">
-              <span className="money">100</span>
+              <span className="money">{moneyCount.total}</span>
               <span className="type">结余</span>
             </div>
           </div>
