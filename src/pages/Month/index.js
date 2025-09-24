@@ -5,12 +5,14 @@ import classNames from 'classnames'
 import dayjs from "dayjs";
 import { useSelector } from "react-redux";
 import _ from 'lodash'
+import DayBill from "./components/DayBill";
 function Month() {
   const [visible, setVisible] = useState(false);
   const [time, setTime] = useState(() => {
     return dayjs(new Date()).format("YYYY-MM");
   });
   const [moneyCount, setMoneyCount] = useState({pay:0, income:0, total:0});
+  const [dayGroup, setDayGroup] = useState({});
   const handleConfirm = (value) => {
     const date = dayjs(value).format("YYYY-MM")
     setTime(date)
@@ -25,10 +27,11 @@ function Month() {
     const arr = monthGroup[time];
     let pay=0, income=0, total=0;
     arr.forEach(item => {
-      if(item.type === 'pay') pay+=Math.abs(item.money);
+      if(item.type === 'pay') pay+=(item.money);
       else if(item.type === 'income') income+= item.money;
       total+=item.money;
     });
+    setDayGroup(_.groupBy(arr, item => dayjs(item.date).format("YYYY-MM-DD")));
     setMoneyCount({pay, income, total});
   }, [time, monthGroup])
   return (
@@ -74,6 +77,9 @@ function Month() {
            onCancel={() => setVisible(false)}
            />
         </div>
+        {Object.keys(dayGroup) && Object.keys(dayGroup).map(key => (
+          <DayBill date={key} data={dayGroup[key]} key={key}></DayBill>
+        ))}
       </div>
     </div>
   )
